@@ -21,7 +21,7 @@ productHTML+=`<div class="product-container">
 </div>
 
 <div class="product-price">
-  $${product.priceCents/100}
+  $${(product.priceCents/100).toFixed(2)}
 </div>
 
 <div class="product-quantity-container">
@@ -52,4 +52,4 @@ productHTML+=`<div class="product-container">
 </div>`;
 });
 
-document.querySelector('.js-product-container').innerHTML = productHTML;
+document.querySelector('.js-products-grid').innerHTML = productHTML;
