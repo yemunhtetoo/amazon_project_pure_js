@@ -3,6 +3,7 @@ import {products, getProduct} from "../../data/products.js";
 import {formatCurrency} from "../utils/money.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
 import { deliveryOptions, getDeliveryOption } from "../../data/deliveryOptions.js";
+import { renderpaymentSummary } from "./paymentSummary.js";
 export function renderOrderSummaryHTML(){
 let cartSummaryHTML = '';
 
@@ -92,6 +93,7 @@ document.querySelectorAll('.js-delete-button').forEach((deleteBtn)=>{
         const container = document.querySelector(`.js-cart-item-container-${productId}`);
         container.remove();
         updateCartQuantity();
+        renderpaymentSummary();
     });
 });
 
@@ -124,6 +126,7 @@ document.querySelectorAll('.js-update-button').forEach((updateBtn)=>{
                 updateQuantity(productId,newQuantity);
                 document.querySelector(`.js-quantity-label-${productId}`).innerHTML = newQuantity;
                 updateCartQuantity();
+                renderpaymentSummary();
             }
         });
     });
@@ -150,6 +153,7 @@ document.querySelectorAll('.save-quantity-button').forEach((saveBtn)=>{
         updateQuantity(productId,newQuantity);
         document.querySelector(`.js-quantity-label-${productId}`).innerHTML = newQuantity;
         updateCartQuantity();
+        renderpaymentSummary();
     });
 });
 
@@ -158,6 +162,7 @@ document.querySelectorAll('.js-delivery-option').forEach((element)=>{
         const {productId,deliveryOptionId} = element.dataset;
         updateDeliveryOption(productId,deliveryOptionId);
         renderOrderSummaryHTML();
+        renderpaymentSummary();
     });
 });
 }
