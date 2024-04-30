@@ -72,7 +72,8 @@ document.querySelectorAll('.js-add-to-cart').forEach((button)=>{
         const getQuantity= document.querySelector(`.js-quantity-selector-${productId}`);
         const quantity = Number(getQuantity.value);
         addToCart(productId,quantity);
-        updateCartQuantity();   
+        updateCartQuantity();
+        document.querySelector(`.js-quantity-selector-${productId}`).value = 1;  
     });
 });
 updateCartQuantity();
