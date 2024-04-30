@@ -1,3 +1,4 @@
+import { calculateCartQuantity } from "../data/cart.js";
 import { orders } from "../data/order.js";
 import { getProduct } from "../data/products.js";
 
@@ -64,3 +65,8 @@ document.querySelector('.js-order-tracking').innerHTML = trackingOrderHTML;
 }
 
 orderHTML();
+updateCartQuantity();
+function updateCartQuantity(){
+  const cartQuantity = calculateCartQuantity();
+  document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
+}
