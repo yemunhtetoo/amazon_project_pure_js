@@ -1,28 +1,22 @@
-import { cart } from "../../data/cart.js";
-import { getProduct } from "../../data/products.js";
+import { cart, calculateCartQuantity } from "../../data/cart.js";
 import { formatCurrency } from "../utils/money.js";
-import { getDeliveryOption } from "../../data/deliveryOptions.js";
+import { calculateTotal } from "../../data/cart.js";
+import { placeOrder } from "../../data/order.js";
 export function renderpaymentSummary(){
-let productPriceCents = 0;
-let shippingPriceCents = 0;
-cart.forEach((cartItem)=>{
-    const product = getProduct(cartItem.productId);
-    productPriceCents += product.priceCents * cartItem.quantity;
-
-    const deliveryOption = getDeliveryOption(cartItem.deliveryOptionId);
-    shippingPriceCents+= deliveryOption.priceCents;
-});
-    const totalBeforeTaxCents = productPriceCents+shippingPriceCents;
-    const taxCents = totalBeforeTaxCents * 0.1;
-    const totalCents = totalBeforeTaxCents + taxCents;
-
+    const filterTotal = calculateTotal(cart);
+    const totalCents = filterTotal[0];
+    const productPriceCents = filterTotal[1];
+    const shippingPriceCents = filterTotal[2];
+    const totalBeforeTaxCents = filterTotal[3];
+    const taxCents = filterTotal[4];
+    const cartQuantity =calculateCartQuantity();
     const paymentSummaryHTML = `
           <div class="payment-summary-title">
             Order Summary
           </div>
 
           <div class="payment-summary-row">
-            <div>Items (3):</div>
+            <div>Items (${cartQuantity}):</div>
             <div class="payment-summary-money">$${formatCurrency(productPriceCents)}</div>
           </div>
 
@@ -46,12 +40,16 @@ cart.forEach((cartItem)=>{
             <div class="payment-summary-money">$${formatCurrency(totalCents)}</div>
           </div>
 
-          <button class="place-order-button button-primary">
-            Place your order
-          </button>
+          <a href="orders.html">
+            <button class="place-order-button button-primary js-place-order-button" >
+              Place your order
+            </button>
+          </a>
         
     `;
-
     document.querySelector('.js-payment-summary').innerHTML = paymentSummaryHTML;
+    document.querySelector('.js-place-order-button').addEventListener('click',()=>{
+      placeOrder();
+    });
 }
 
