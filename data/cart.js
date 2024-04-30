@@ -23,7 +23,7 @@ export function addToCart(productId,quantity){
             }
         });
         if(matchingItem){
-            matchingItem.quantity= quantity;
+            matchingItem.quantity+=quantity;
         }else{
             cart.push({
                 productId,
