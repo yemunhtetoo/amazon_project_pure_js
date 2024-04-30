@@ -19,7 +19,7 @@ if(product.productId===getProId){
 alignProduct = product;
 }
 });
-// console.log(alignProduct)
+console.log(alignProduct)
 
 let actualProId = alignProduct.productId;
 const matchProduct = getProduct(actualProId);
@@ -31,7 +31,7 @@ const trackingOrderHTML = `
         </a>
 
         <div class="delivery-date">
-          Arriving on Monday, June 13
+          Arriving on : ${alignProduct.dateString}
         </div>
 
         <div class="product-info">
