@@ -61,7 +61,6 @@ document.querySelectorAll('.js-add-to-cart').forEach((button)=>{
         const {productId} = button.dataset;
         const getAddToCartBtn = document.querySelector(`.js-added-to-cart-${productId}`);
         getAddToCartBtn.classList.add('added-to-cart-style');
-
         const previousTimeoutId = addedMessageTimeouts[productId];
         if(previousTimeoutId){
             clearTimeout(previousTimeoutId);
@@ -70,7 +69,6 @@ document.querySelectorAll('.js-add-to-cart').forEach((button)=>{
             getAddToCartBtn.classList.remove('added-to-cart-style');
             },2000);
         addedMessageTimeouts[productId] = timeoutId;
-
         const getQuantity= document.querySelector(`.js-quantity-selector-${productId}`);
         const quantity = Number(getQuantity.value);
         addToCart(productId,quantity);
