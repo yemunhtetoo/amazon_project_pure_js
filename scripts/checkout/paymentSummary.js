@@ -1,16 +1,16 @@
-import { cart, calculateCartQuantity } from "../../data/cart.js";
+import { cart } from "../../data/cart-class.js";
 import { formatCurrency } from "../utils/money.js";
-import { calculateTotal } from "../../data/cart.js";
-import { placeOrder } from "../../data/order.js";
-export function renderpaymentSummary(){
-    const filterTotal = calculateTotal(cart);
-    const totalCents = filterTotal[0];
-    const productPriceCents = filterTotal[1];
-    const shippingPriceCents = filterTotal[2];
-    const totalBeforeTaxCents = filterTotal[3];
-    const taxCents = filterTotal[4];
-    const cartQuantity =calculateCartQuantity();
-    const paymentSummaryHTML = `
+import { addOrder } from "../../data/orders.js";
+// import { placeOrder } from "../../data/order.js";
+export function renderpaymentSummary() {
+  const filterTotal = cart.calculateTotal(cart);
+  const totalCents = filterTotal[0];
+  const productPriceCents = filterTotal[1];
+  const shippingPriceCents = filterTotal[2];
+  const totalBeforeTaxCents = filterTotal[3];
+  const taxCents = filterTotal[4];
+  const cartQuantity = cart.calculateCartQuantity();
+  const paymentSummaryHTML = `
           <div class="payment-summary-title">
             Order Summary
           </div>
@@ -40,16 +40,38 @@ export function renderpaymentSummary(){
             <div class="payment-summary-money">$${formatCurrency(totalCents)}</div>
           </div>
 
-          <a href="orders.html">
-            <button class="place-order-button button-primary js-place-order-button" >
+            <a href="#">
+            <button class="place-order-button button-primary js-place-order" >
               Place your order
             </button>
           </a>
-        
-    `;
-    document.querySelector('.js-payment-summary').innerHTML = paymentSummaryHTML;
-    document.querySelector('.js-place-order-button').addEventListener('click',()=>{
-      placeOrder();
-    });
+        `;
+
+  document.querySelector('.js-payment-summary').innerHTML = paymentSummaryHTML;
+
+  document.querySelector('.js-place-order').addEventListener('click', async () => {
+    if(cart.cartItems.length === 0){
+      window.location.href = 'orders.html';
+    }else{
+      try {
+        const response = await fetch('https://supersimplebackend.dev/orders', {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            cart: cart.cartItems
+          })
+        });
+        const order = await response.json();
+        addOrder(order);
+      } catch (error) {
+        console.log('Unexpected Error. Try Again Later.')
+      }
+      cart.removeAllCart();
+    }
+      window.location.href = 'orders.html';
+    
+  })
 }
 

@@ -1,8 +1,27 @@
-import { products } from "../data/products.js";
-import {cart, addToCart, calculateCartQuantity } from "../data/cart.js";
-import {formatCurrency} from "./utils/money.js";
+import { products ,loadProducts } from "../data/products.js";
+import {cart } from "../data/cart-class.js";
+
+//Callback (a function to run in the future)
+loadProducts(renderProductGrids);
+function renderProductGrids(){
 let productHTML = '';
-products.forEach((product)=>{
+const url = new URL(window.location.href);
+const search = url.searchParams.get('search');
+let filterProducts = products;
+if(search){
+  filterProducts = products.filter((product)=>{
+    // return product.name.includes(search);
+    let matchingKeyword = false;
+    product.keywords.forEach((keyword)=>{
+      if(keyword.toLowerCase().includes(search.toLowerCase())){
+        matchingKeyword = true;
+      }
+    });
+
+    return matchingKeyword || product.name.toLowerCase().includes(search.toLowerCase());
+  });
+}
+filterProducts.forEach((product)=>{
 productHTML+=`<div class="product-container">
 <div class="product-image-container">
   <img class="product-image"
@@ -15,14 +34,14 @@ productHTML+=`<div class="product-container">
 
 <div class="product-rating-container">
   <img class="product-rating-stars"
-    src="images/ratings/rating-${product.rating.stars*10}.png">
+    src="${product.getStarsUrl()}">
   <div class="product-rating-count link-primary">
     ${product.rating.count}
   </div>
 </div>
 
 <div class="product-price">
-  $${formatCurrency(product.priceCents)}
+  ${product.getPrice()}
 </div>
 
 <div class="product-quantity-container">
@@ -39,6 +58,8 @@ productHTML+=`<div class="product-container">
     <option value="10">10</option>
   </select>
 </div>
+
+${product.extraInfoHTML()}
 
 <div class="product-spacer"></div>
 
@@ -71,7 +92,7 @@ document.querySelectorAll('.js-add-to-cart').forEach((button)=>{
         addedMessageTimeouts[productId] = timeoutId;
         const getQuantity= document.querySelector(`.js-quantity-selector-${productId}`);
         const quantity = Number(getQuantity.value);
-        addToCart(productId,quantity);
+        cart.addToCart(productId,quantity);
         updateCartQuantity();
         document.querySelector(`.js-quantity-selector-${productId}`).value = 1;  
     });
@@ -79,6 +100,21 @@ document.querySelectorAll('.js-add-to-cart').forEach((button)=>{
 updateCartQuantity();
 
 function updateCartQuantity(){
-    const cartQuantity = calculateCartQuantity();
+    const cartQuantity = cart.calculateCartQuantity();
     document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
 }
+
+document.querySelector('.js-search-button').addEventListener('click',()=>{
+  const search = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${search}`;
+});
+
+document.querySelector('.js-search-bar').addEventListener('keydown',(event)=>{
+  if(event.key === 'Enter'){
+    const searchTerm = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${searchTerm}`;
+  }
+});
+
+}
+

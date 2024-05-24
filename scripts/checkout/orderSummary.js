@@ -1,4 +1,4 @@
-import { calculateCartQuantity, cart, removeFromCart, updateQuantity, updateDeliveryOption } from "../../data/cart.js";
+import {cart } from "../../data/cart-class.js";
 import {products, getProduct} from "../../data/products.js";
 import {formatCurrency} from "../utils/money.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
@@ -8,7 +8,7 @@ import { renderCheckoutHeader } from "./checkoutHeader.js";
 export function renderOrderSummaryHTML(){
 let cartSummaryHTML = '';
 
-cart.forEach((cartItem)=>{
+cart.cartItems.forEach((cartItem)=>{
     const productId = cartItem.productId;
     const matchingProduct = getProduct(productId);
         const deliveryOptionId = cartItem.deliveryOptionId;
@@ -32,7 +32,7 @@ cart.forEach((cartItem)=>{
                 ${matchingProduct.name}
             </div>
             <div class="product-price">
-                $${formatCurrency(matchingProduct.priceCents)}
+                ${matchingProduct.getPrice()}
             </div>
             <div class="product-quantity">
                 <span>
@@ -89,7 +89,7 @@ document.querySelector('.js-order-summary').innerHTML = cartSummaryHTML;
 document.querySelectorAll('.js-delete-button').forEach((deleteBtn)=>{
     deleteBtn.addEventListener('click',()=>{
         const {productId} = deleteBtn.dataset;
-        removeFromCart(productId);
+        cart.removeFromCart(productId);
         renderCheckoutHeader();
         renderOrderSummaryHTML();
         renderpaymentSummary();
@@ -115,7 +115,7 @@ document.querySelector(`.js-quantity-input-${productId}`).addEventListener('keyd
             alert('Quantity must be at least 0 and less than 1000');
             return;
         }
-        updateQuantity(productId,newQuantity);
+        cart.updateQuantity(productId,newQuantity);
         renderCheckoutHeader();
         renderOrderSummaryHTML();
         renderpaymentSummary();
@@ -136,7 +136,7 @@ document.querySelectorAll('.save-quantity-button').forEach((saveBtn)=>{
             alert('Quantity must be at least 0 and less than 1000');
             return;
         }
-        updateQuantity(productId,newQuantity);
+        cart.updateQuantity(productId,newQuantity);
         renderCheckoutHeader();
         renderOrderSummaryHTML();
         renderpaymentSummary();
@@ -146,7 +146,7 @@ document.querySelectorAll('.save-quantity-button').forEach((saveBtn)=>{
 document.querySelectorAll('.js-delivery-option').forEach((element)=>{
     element.addEventListener(('click'),()=>{
         const {productId,deliveryOptionId} = element.dataset;
-        updateDeliveryOption(productId,deliveryOptionId);
+        cart.updateDeliveryOption(productId,deliveryOptionId);
         renderCheckoutHeader();
         renderOrderSummaryHTML();
         renderpaymentSummary();

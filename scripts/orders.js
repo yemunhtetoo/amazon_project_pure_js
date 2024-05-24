@@ -1,14 +1,15 @@
-import { cart, calculateCartQuantity, addToCart } from "../data/cart.js";
-import { getDeliveryOption } from "../data/deliveryOptions.js";
+import { cart } from "../data/cart-class.js";
 import { formatCurrency } from "./utils/money.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
-import { getProduct } from "../data/products.js";
-import { orders } from "../data/order.js";
+import { getProduct, loadProductsFetch, products } from "../data/products.js";
+import { orders } from "../data/orders.js";
 
-export function renderOrderPage(){
-  console.log(orders)
+async function renderOrderPage(){
+  // console.log(orders)
+  await loadProductsFetch();
     let orderSummaryHTML = '';
     orders.forEach((orderItem)=>{
+      const orderTimeString = dayjs(orderItem.orderTime).format('MMMM D');
         orderSummaryHTML += `
         <div class="order-container">
 
@@ -16,11 +17,11 @@ export function renderOrderPage(){
             <div class="order-header-left-section">
               <div class="order-date">
                 <div class="order-header-label">Order Placed:</div>
-                <div>${orderItem.orderedDate}</div>
+                <div>${orderTimeString}</div>
               </div>
               <div class="order-total">
                 <div class="order-header-label">Total:</div>
-                <div>$${formatCurrency(orderItem.total)}</div>
+                <div>$${formatCurrency(orderItem.totalCostCents)}</div>
               </div>
             </div>
 
@@ -31,20 +32,18 @@ export function renderOrderPage(){
           </div>
           
           <div class="order-details-grid">
-            ${orderDetailsGrids(orderItem.cartItems, orderItem)}
+            ${orderDetailsGrids(orderItem)  }
           </div>
         </div>
         `;
     });
-    document.querySelector('.js-orders-grid').innerHTML = orderSummaryHTML;
-}
 
-function orderDetailsGrids(orderItemCart, orderItem){
-  let orderDetailsGridHTML = '';
-  orderItemCart.forEach((cartItem)=>{
-    const productId = cartItem.productId;
-    const matchingProduct = getProduct(productId);
     
+function orderDetailsGrids(orderItemCart){
+  let orderDetailsGridHTML = '';
+  orderItemCart.products.forEach((cartSingle)=>{
+    const matchingProduct = getProduct(cartSingle.productId);
+
     orderDetailsGridHTML += `
     <div class="product-image-container">
       <img src="${matchingProduct.image}">
@@ -55,20 +54,20 @@ function orderDetailsGrids(orderItemCart, orderItem){
         ${matchingProduct.name}
       </div>
       <div class="product-delivery-date">
-        Arriving on: ${cartItem.dateString}
+        Arriving on: ${dayjs(cartSingle.estimatedDeliveryTime).format('MMMM D')}
       </div>
       <div class="product-quantity">
-        Quantity: ${cartItem.quantity}
+        Quantity: ${cartSingle.quantity}
       </div>
-      <button class="buy-again-button button-primary js-buy-again-button" data-product-id=${matchingProduct.id}>
+      <button class="buy-again-button button-primary js-buy-again" data-product-id=${matchingProduct.id}>
         <img class="buy-again-icon" src="images/icons/buy-again.png">
         <span class="buy-again-message">Buy it again</span>
       </button>
     </div>
 
     <div class="product-actions">
-      <a href="tracking.html">
-        <button class="track-package-button button-secondary js-track-package-button" data-product-id=${matchingProduct.id} data-ordered-item-id=${orderItem.id}>
+      <a href="tracking.html?orderId=${orderItemCart.id}&productId=${cartSingle.productId}">
+        <button class="track-package-button button-secondary js-track-package-button">
           Track package
         </button>
       </a>
@@ -77,26 +76,38 @@ function orderDetailsGrids(orderItemCart, orderItem){
   });
   return orderDetailsGridHTML;
 }
-updateCartQuantity();
-renderOrderPage();
 
-document.querySelectorAll('.js-buy-again-button').forEach(button=>{
+    document.querySelector('.js-orders-grid').innerHTML = orderSummaryHTML;
+    updateCartQuantity();
+// renderOrderPage();
+
+document.querySelectorAll('.js-buy-again').forEach(button=>{
   button.addEventListener('click',()=>{
+    console.log('hi')
       const {productId} = button.dataset;
       const quantity = 1;
-      addToCart(productId,quantity);
+      cart.addToCart(productId,quantity);
       updateCartQuantity();
   });
 });
 
-document.querySelectorAll('.js-track-package-button').forEach(button=>{
-  button.addEventListener('click',()=>{
-  const {productId, orderedItemId } = button.dataset;
-    sessionStorage.setItem('ordersItemsStorage',JSON.stringify([productId,orderedItemId]));
-});
-});
-
 function updateCartQuantity(){
-    const cartQuantity = calculateCartQuantity();
+    const cartQuantity = cart.calculateCartQuantity();
     document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
 }
+
+document.querySelector('.js-search-button').addEventListener('click',()=>{
+  const search = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${search}`;
+});
+
+document.querySelector('.js-search-bar').addEventListener('keydown',(event)=>{
+  if(event.key === 'Enter'){
+    const searchTerm = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${searchTerm}`;
+  }
+});
+
+}
+
+renderOrderPage();

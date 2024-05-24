@@ -1,29 +1,28 @@
-import { calculateCartQuantity } from "../data/cart.js";
-import { orders } from "../data/order.js";
-import { getProduct } from "../data/products.js";
+import { cart } from "../data/cart-class.js";
+import { getOrder } from "../data/orders.js";
+import { getProduct, loadProductsFetch } from "../data/products.js";
+import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
+async function orderHTML(){
+await loadProductsFetch();
+const url = new URL(window.location.href);
+const orderId = url.searchParams.get('orderId');
+const productId = url.searchParams.get('productId');
 
-export function orderHTML(){
-const getData = JSON.parse(sessionStorage.getItem('ordersItemsStorage'));
-const orderId = Number(getData[1]);
-const getProId = getData[0];
-let alignOrder; 
-let alignProduct;
-orders.forEach(orderItem=>{
-  if(orderItem.id === orderId){
-    alignOrder = orderItem.cartItems;
+const order = getOrder(orderId);
+const product = getProduct(productId);
+let productDetials;
+order.products.forEach((details)=>{
+  if(details.productId === product.id){
+    productDetials = details;
   }
 });
-// console.log(alignOrder);
-alignOrder.forEach(product=>{
-if(product.productId===getProId){
-alignProduct = product;
-}
-});
-console.log(alignProduct)
 
-let actualProId = alignProduct.productId;
-const matchProduct = getProduct(actualProId);
-// console.log(matchProduct)
+const today =dayjs();
+const orderTime = dayjs(order.orderTime);
+const deliveryTime = dayjs(productDetials.estimatedDeliveryTime);
+const percentProgress = ((today - orderTime) / (deliveryTime - orderTime)) * 100;
+const deliveryMessage = today < deliveryTime ? 'Arriving on' : 'Delivered On';
+console.log(percentProgress);
 const trackingOrderHTML = `
     <div class="order-tracking">
         <a class="back-to-orders-link link-primary" href="orders.html">
@@ -31,42 +30,54 @@ const trackingOrderHTML = `
         </a>
 
         <div class="delivery-date">
-          Arriving on : ${alignProduct.dateString}
+          ${deliveryMessage} : ${dayjs(productDetials.estimatedDeliveryTime).format('dddd, MMMM D')}
         </div>
 
         <div class="product-info">
-          Name: ${matchProduct.name}
+          Name: ${product.name}
         </div>
 
         <div class="product-info">
-          Quantity: ${alignProduct.quantity}
+          Quantity: ${productDetials.quantity}
         </div>
 
-        <img class="product-image" src="${matchProduct.image}">
+        <img class="product-image" src="${product.image}">
 
         <div class="progress-labels-container">
-          <div class="progress-label">
+          <div class="progress-label ${percentProgress < 50 ? 'current-status' : ''}">
             Preparing
           </div>
-          <div class="progress-label current-status">
+          <div class="progress-label ${percentProgress >= 50 && percentProgress < 100 ? 'current-status' : ''}">
             Shipped
           </div>
-          <div class="progress-label">
+          <div class="progress-label ${percentProgress >= 100 ? 'current-status' : ''}">
             Delivered
           </div>
         </div>
 
         <div class="progress-bar-container">
-          <div class="progress-bar"></div>
+          <div class="progress-bar" style="width: ${percentProgress}%;"></div>
         </div>
     </div>
 `;
 document.querySelector('.js-order-tracking').innerHTML = trackingOrderHTML;
-}
-
-orderHTML();
 updateCartQuantity();
 function updateCartQuantity(){
-  const cartQuantity = calculateCartQuantity();
+  const cartQuantity = cart.calculateCartQuantity();
   document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
 }
+
+document.querySelector('.js-search-button').addEventListener('click',()=>{
+  const search = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${search}`;
+});
+
+document.querySelector('.js-search-bar').addEventListener('keydown',(event)=>{
+  if(event.key === 'Enter'){
+    const searchTerm = document.querySelector('.js-search-bar').value;
+  window.location.href = `amazon.html?search=${searchTerm}`;
+  }
+});
+
+}
+orderHTML();
